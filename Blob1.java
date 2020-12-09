@@ -6,10 +6,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.JToolBar.Separator;
@@ -27,17 +29,17 @@ public class Blob1 {
 	
 	//根据文件的内容生成对应哈希值，返回该sha1值作为KEY
 	public String GenerateKEY(String FileName) throws Exception {
-			File file = new File(FileName);
-			FileInputStream is = new FileInputStream(file);
-			byte[] sha1 = SHA1Checksum(is);
+		File file = new File(FileName);
+		FileInputStream is = new FileInputStream(file);
+		byte[] sha1 = SHA1Checksum(is);
 			
-			KEY = "";
-			for(int i = 0; i < sha1.length; i++) {
-				KEY +=Integer.toString(sha1[i]&0xFF,16);
-			}
+		KEY = "";
+		for(int i = 0; i < sha1.length; i++) {
+			KEY +=Integer.toString(sha1[i]&0xFF,16);
+		}
 			
-			System.out.println("KEY生成成功，KEY:"+KEY);
-			return KEY;
+		System.out.println("KEY生成成功，KEY:"+KEY);
+		return KEY;
 	}
 		
 	//生成SHA1值
@@ -63,7 +65,6 @@ public class Blob1 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Blob文件生成成功");
     }
 
 	//将原来文件的内容输入到对应key的文件中,如果文件重复则直接覆盖
@@ -94,21 +95,56 @@ public class Blob1 {
 		in.close();
 	}
 	
-	//判断文件/文件夹是否为Blob
-	
-	
+	//生成tree的KEY
+	public static void GenerateTreeKEY(String Dir) throws Exception{
+		File dir = new File(Dir);
+		File[] fs = dir.listFiles();
+		//List用于记录Blob的KEY，用于计算tree的KEY
+		ArrayList<String> KEYList = new ArrayList<String>();
+
+		for(int i =0; i< fs.length; i++) {
+			if(fs[i].isFile()) {
+				//每次遇到文件类型，就new一个Blob对象，此时该文件的KEY,VALUE都已经储存在Objects文件夹下
+				Blob1 blob = new Blob1(fs[i].toString());
+				//将blob的SHA1值和文件名进行拼接，并放入List中，用于计算tree的KEY
+				KEYList.add(blob.KEY+fs[i].getName());
+				System.out.println("文件名："+"KEY:"+fs[i].getName()+blob.KEY+"  类型：blob");
+			if(fs[i].isDirectory()) {
+				System.out.println("文件夹名:"+ fs[i].getName());
+				GenerateTreeKEY(Dir + File.separator + fs[i].getName());
+			}
+		}
+		
+		//计算tree的KEY
+		String treeKEY = null;
+		//将List中的blob的KEY+文件名拼接成一整个字符串TREE
+		for(String b:KEYList) treeKEY += b; 
+		//创建临时文件存储tree的Value
+		File file = new File("TreeTemp");
+        PrintStream ps = new PrintStream(new FileOutputStream(file));
+        ps.println(treeKEY);// 往文件里写入字符串
+        Blob1 tree1 = new Blob1("TreeTemp");
+		System.out.println("tree的KEY生成成功"+tree1.KEY+"  类型：tree");
+		ps.close();
+		}
+	}
+
 	
 	//主函数
 	public static void main(String[] args) throws Exception {
-		System.out.println("请输入文件名：");
+		
+		System.out.println("请输入文件或文件夹名：");
 		Scanner input = new Scanner(System.in);
 		String FileName = input.next();
-		new Blob1(FileName);
-		System.out.println("请输入KEY:");
+		File file = new File(FileName);
+		if(file.isFile()) new Blob1(FileName);
+		if(file.isDirectory())GenerateTreeKEY(FileName);
+		System.out.println("请输入要查找的KEY:");
 		Scanner input1 = new Scanner(System.in);
 		String KEY = input1.next();
 		FindValue(KEY);
 		input1.close();
 		input.close();
+
 	}
 }
