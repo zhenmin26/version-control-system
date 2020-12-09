@@ -31,7 +31,7 @@ public class Blob1 {
 			FileInputStream is = new FileInputStream(file);
 			byte[] sha1 = SHA1Checksum(is);
 			
-			KEY = " ";
+			KEY = "";
 			for(int i = 0; i < sha1.length; i++) {
 				KEY +=Integer.toString(sha1[i]&0xFF,16);
 			}
@@ -93,6 +93,9 @@ public class Blob1 {
 		} 
 		in.close();
 	}
+	
+	//判断文件/文件夹是否为Blob
+	
 	
 	
 	//主函数
