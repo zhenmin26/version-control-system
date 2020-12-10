@@ -50,15 +50,31 @@ public class Blob{
     }
 
     //2. 返回value值 getValue
-    public void getValue(String key) throws IOException {
-        //方法一
-        String value = "";
-        Path targetFilePath = Paths.get(sharedpath + File.separator + key);
-        value = Files.readString(targetFilePath);
-
-        //方法二
-
-        System.out.println("value of blob \"" + key +".txt\"" + " is " +value);
+    public void getValue(String key){
+    	String targetFilePath = sharedpath + File.separator + key;
+    	File targetFile = new File(targetFilePath);
+    	FileInputStream is =null;
+    	String value="";
+    	try{
+    		is=new FileInputStream(targetFile);
+    	    String encoding="GBK";
+    	    int numread=0;
+    	    int size=is.available();
+            byte buff[] = new byte[size];
+            int length = is.read(buff);
+            value = new String(buff,encoding);
+        } catch (IOException ex) {
+        	ex.printStackTrace();
+           }finally {
+        	   if (is!=null) {
+        		   try {
+        			   is.close();
+                   } catch (IOException e) {
+                	   e.printStackTrace();
+                   }
+        	   }
+           }
+    	 System.out.println("value of blob \"" + key +".txt\"" + " is " +value);
     }
 
     //3. 获得blob的key值
