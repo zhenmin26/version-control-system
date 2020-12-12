@@ -48,6 +48,35 @@ public class Blob {
 		return complete.digest();
 	}
 
+<<<<<<< HEAD
+    //2. 返回value值 getValue
+    public void getValue(String key){
+    	String targetFilePath = sharedpath + File.separator + key;
+    	File targetFile = new File(targetFilePath);
+    	FileInputStream is =null;
+    	String value="";
+    	try{
+    		is=new FileInputStream(targetFile);
+    	    String encoding="GBK";
+    	    int numread=0;
+    	    int size=is.available();
+            byte buff[] = new byte[size];
+            int length = is.read(buff);
+            value = new String(buff,encoding);
+        } catch (IOException ex) {
+        	ex.printStackTrace();
+           }finally {
+        	   if (is!=null) {
+        		   try {
+        			   is.close();
+                   } catch (IOException e) {
+                	   e.printStackTrace();
+                   }
+        	   }
+           }
+    	 System.out.println("value of blob \"" + key +".txt\"" + " is " +value);
+    }
+
 	//在工作路径下的Object文件夹下创建以KEY为文件名的文件
 	public void GenerateFile(String KEY) {
 		File file=new File(path, KEY);
@@ -90,5 +119,6 @@ public class Blob {
 	}
 
 	//判断文件/文件夹是否为Blob
+>>>>>>> cd6d00727a225633ecaef791a2eea2dff0051585
 
 }

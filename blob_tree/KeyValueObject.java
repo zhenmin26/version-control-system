@@ -20,9 +20,13 @@ abstract class KeyValueObject{
     }
     
     //查找hash值对应文件value的函数
-    public String getValue(String key) throws IOException {
+    public String getValue(String key) throws Exception {
         String value = "";
+        try {
         Path targetFilePath = Paths.get(path + File.separator + key);
+        }catch（Exception ex){
+        	system.out.println(ex.toString());
+        }
         value = Files.readString(targetFilePath);
         return value;
     }
