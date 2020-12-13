@@ -21,13 +21,13 @@ Date:   Wed Dec 9 14:25:14 2020 +0800
 
     修改Blob1
  */
-
 public class Commit extends KeyValueObject{
     //数据域
     private String key;
     private String value;
     private String parent; //已有最新commit的key
-    public static HEAD myHEAD; //HEAD
+    //public static HEAD myHEAD; //HEAD
+    //public HEAD myHEAD; //HEAD
     public String path = "Objects";
     public String pathOfHEAD = path + File.separator + "HEAD";
     private String author;
@@ -46,7 +46,8 @@ public class Commit extends KeyValueObject{
             //生成commit key
             this.key = generateKey(value);
             //生成HEAD()
-            myHEAD = new HEAD(key);
+            //myHEAD = new HEAD(key);
+            new HEAD(key);
         }
         else { //commit value是根目录的tree key
             this.value += "tree " + keyOfRoot + "\n";
@@ -54,7 +55,12 @@ public class Commit extends KeyValueObject{
             //生成commit key
             this.key = generateKey(value);
             //更新HEAD文件里的commit key
-            myHEAD.setValue(key);
+            //myHEAD.setValue(key);
+            // 如果利用myHEAD对象来更新HEAD文件，程序运行结束之后myHEAD会被释放
+            // 下一次运行程序的时候，并不会是第一次commit，就不会生成myHEAD对象了
+            // 此时，myHEAD=null，会报错！
+            new HEAD(key); //现在是在每次commit，都会产生commit对象
+            //在HEAD构造方法里，会更新HEAD文件
         }
 
         //生成commit的key-value文件

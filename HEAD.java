@@ -10,10 +10,21 @@ public class HEAD {
 
 
     public HEAD(String keyOfCommit) throws IOException {
-        this.keyOfCurCommit = keyOfCommit;
+
+        //this.keyOfCurCommit = keyOfCommit;
         //在Objects文件夹中生成HEAD文件，用来存放commit key
-        (new File(path, "HEAD")).createNewFile();
-        putValueIntoFile(keyOfCurCommit); //把最新的commit key放到HEAD文件里
+        //(new File(path, "HEAD")).createNewFile();
+        //putValueIntoFile(keyOfCurCommit); //把最新的commit key放到HEAD文件里
+
+        //1st commit
+        if(!((new File(pathOfHEAD)).exists())){
+            (new File(path, "HEAD")).createNewFile();
+            this.keyOfCurCommit = keyOfCommit;
+            putValueIntoFile(keyOfCurCommit);
+        }
+        else { //not 1st commit
+            setValue(keyOfCommit);
+        }
     }
 
     public void setValue(String keyOfCommit){
