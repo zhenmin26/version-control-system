@@ -39,6 +39,7 @@ public class Commit extends KeyValueObject{
     //函数
     public Commit(String keyOfRoot) throws Exception {
         this.value = "";
+        //通过是否存在HEAD文件来判断，是否是第一次commit
         //如果HEAD文件不存在，说明是第一次commit
         if(!((new File(pathOfHEAD)).exists())){
             //commit value是根目录的tree key
@@ -47,7 +48,7 @@ public class Commit extends KeyValueObject{
             this.key = generateKey(value);
             //生成HEAD()
             //myHEAD = new HEAD(key);
-            new HEAD(key);
+            new HEAD(key); //在HEAD构造方法例，如果是第一次commit，会产生HEAD文件，并存入value
         }
         else { //commit value是根目录的tree key
             this.value += "tree " + keyOfRoot + "\n";
@@ -59,8 +60,8 @@ public class Commit extends KeyValueObject{
             // 如果利用myHEAD对象来更新HEAD文件，程序运行结束之后myHEAD会被释放
             // 下一次运行程序的时候，并不会是第一次commit，就不会生成myHEAD对象了
             // 此时，myHEAD=null，会报错！
-            new HEAD(key); //现在是在每次commit，都会产生commit对象
-            //在HEAD构造方法里，会更新HEAD文件
+            new HEAD(key); //现在是在每次commit，都会产生HEAD对象
+            //在HEAD构造方法里，如果不是第一次commit，会更新HEAD文件的value
         }
 
         //生成commit的key-value文件
