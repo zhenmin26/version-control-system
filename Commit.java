@@ -93,13 +93,8 @@ public class Commit extends KeyValueObject{
         String targetValue = "";
         try {
             String contentOfFile = Files.readString(Paths.get(path));
-            if(contentOfFile.matches(target + ".*")){
-                //因为是以"target "的形式存储的，所以要取字串需要从target.length()+2开始，要该行的最后
-                targetValue =  (contentOfFile.substring(target.length()+1)).trim(); //trim()去除"\n"符号
-            }
-            else{
-                System.out.println("No " + target); //如果文件中没有找到目标值
-            }
+            int index = contentOfFile.indexOf(target);
+            targetValue = contentOfFile.substring(index + target.length() + 1, index + target.length() + 1 + 40);
         }
         catch(FileNotFoundException ex){
             System.out.println("No such file -- " + (new File(path)).getName());
