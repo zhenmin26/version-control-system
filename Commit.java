@@ -28,22 +28,39 @@ public class Commit extends KeyValueObject{
     private String parent; //已有最新commit的key
     //public static HEAD myHEAD; //HEAD
     //public HEAD myHEAD; //HEAD
-    public String path = "Objects";
-    public String pathOfHEAD = path + File.separator + "HEAD";
+    public static String path = "Objects";
+    public static String pathOfHEAD = path + File.separator + "HEAD"; //current HEAD
+    public static String pathOfConfig = path + File.separator + "Config"; //user info
     private String author;
     private String email;
     private String committer;
     private String dateCreated;
+    private String descOfCommit; //description of commit
 
 
     //函数
-    public Commit(String keyOfRoot) throws Exception {
+    public Commit(String keyOfRoot, String descOfCommit) throws Exception {
+        this.dateCreated = (new Date()).toString();
+        this.descOfCommit = descOfCommit;
+
+        //判断文件Config是否存在，存在则读取author，email；否则调用Config创建Config文件
+        if(!(new File(pathOfConfig).exists())) {
+            new Config();
+        }
+        this.author = getTargetValue("username", pathOfConfig); //在Config文件中，author对应的是username
+        this.email = getTargetValue("email", pathOfConfig);
+
+        //set commit value
         this.value = "";
         //通过是否存在HEAD文件来判断，是否是第一次commit
         //如果HEAD文件不存在，说明是第一次commit
         if(!((new File(pathOfHEAD)).exists())){
             //commit value是根目录的tree key
             this.value += "tree " + keyOfRoot + "\n";
+            this.value += "author " + author + "\n";
+            this.value += "email " + email + "\n";
+            this.value += "date " + dateCreated + "\n";
+            this.value += "description " + descOfCommit + "\n";
             //生成commit key
             this.key = generateKey(value);
             //生成HEAD()
@@ -53,6 +70,10 @@ public class Commit extends KeyValueObject{
         else { //commit value是根目录的tree key
             this.value += "tree " + keyOfRoot + "\n";
             this.value += "parent " + getParent() + "\n";
+            this.value += "author " + author + "\n";
+            this.value += "email " + email + "\n";
+            this.value += "date " + dateCreated + "\n";
+            this.value += "description " + descOfCommit + "\n";
             //生成commit key
             this.key = generateKey(value);
             //更新HEAD文件里的commit key
@@ -92,9 +113,19 @@ public class Commit extends KeyValueObject{
     public String getTargetValue(String target, String path){
         String targetValue = "";
         try {
-            String contentOfFile = Files.readString(Paths.get(path));
-            int index = contentOfFile.indexOf(target);
-            targetValue = contentOfFile.substring(index + target.length() + 1, index + target.length() + 1 + 40);
+            FileReader fileReader = new FileReader(path);
+            BufferedReader in = new BufferedReader(fileReader);
+            do{
+                String line = in.readLine();
+                //int index = line.indexOf(target);
+                if(line.matches(target + ".*")) {
+                    //targetValue = line.substring(index + target.length() + 1).trim();
+                    targetValue = line.substring(target.length() + 1).trim();
+                }
+            }while(targetValue == "");
+//            String contentOfFile = Files.readString(Paths.get(path));
+//            int index = contentOfFile.indexOf(target);
+//            targetValue = contentOfFile.substring(index + target.length() + 1, index + target.length() + 1 + 40);
         }
         catch(FileNotFoundException ex){
             System.out.println("No such file -- " + (new File(path)).getName());
@@ -113,11 +144,13 @@ public class Commit extends KeyValueObject{
         return "commit " + key + "\n"
                 + "parent " + parent + "\n"
                 + "author " + author + "<" + email + ">" + "\n"
-                + "date " + dateCreated + "\n";
+                + "date " + dateCreated + "\n"
+                + "description " + descOfCommit;
 /*   commit 80abf20f197563ea14ca29f2d6b0945c483b2682
      parent 80abf20f197563ea14ca29f2d6b0945c483b2682
      author username <email>
      date dateCreated
+     description someSampleDescription
 */
     }
 }
