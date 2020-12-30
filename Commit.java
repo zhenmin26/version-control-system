@@ -1,5 +1,8 @@
+package version_control;
+
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.stream.Stream;
@@ -28,39 +31,23 @@ public class Commit extends KeyValueObject{
     private String parent; //已有最新commit的key
     //public static HEAD myHEAD; //HEAD
     //public HEAD myHEAD; //HEAD
-    public static String path = "Objects";
-    public static String pathOfHEAD = path + File.separator + "HEAD"; //current HEAD
-    public static String pathOfConfig = path + File.separator + "Config"; //user info
+    public String path = "objects";
+    public String pathOfHEAD = path + File.separator + "HEAD";
     private String author;
     private String email;
     private String committer;
-    private String dateCreated;
-    private String descOfCommit; //description of commit
+    private java.util.Date dateCreated;
+    public static Log log;
 
 
     //函数
-    public Commit(String keyOfRoot, String descOfCommit) throws Exception {
-        this.dateCreated = (new Date()).toString();
-        this.descOfCommit = descOfCommit;
-
-        //判断文件Config是否存在，存在则读取author，email；否则调用Config创建Config文件
-        if(!(new File(pathOfConfig).exists())) {
-            new Config();
-        }
-        this.author = getTargetValue("username", pathOfConfig); //在Config文件中，author对应的是username
-        this.email = getTargetValue("email", pathOfConfig);
-
-        //set commit value
+    public Commit(String keyOfRoot) throws Exception {
         this.value = "";
         //通过是否存在HEAD文件来判断，是否是第一次commit
         //如果HEAD文件不存在，说明是第一次commit
         if(!((new File(pathOfHEAD)).exists())){
             //commit value是根目录的tree key
             this.value += "tree " + keyOfRoot + "\n";
-            this.value += "author " + author + "\n";
-            this.value += "email " + email + "\n";
-            this.value += "date " + dateCreated + "\n";
-            this.value += "description " + descOfCommit + "\n";
             //生成commit key
             this.key = generateKey(value);
             //生成HEAD()
@@ -70,10 +57,6 @@ public class Commit extends KeyValueObject{
         else { //commit value是根目录的tree key
             this.value += "tree " + keyOfRoot + "\n";
             this.value += "parent " + getParent() + "\n";
-            this.value += "author " + author + "\n";
-            this.value += "email " + email + "\n";
-            this.value += "date " + dateCreated + "\n";
-            this.value += "description " + descOfCommit + "\n";
             //生成commit key
             this.key = generateKey(value);
             //更新HEAD文件里的commit key
@@ -89,8 +72,9 @@ public class Commit extends KeyValueObject{
         generateFile(key);
         //向commit的key-value文件中写入value，value为tree key
         putValueIntoFile(key, value);
+        dateCreated=new java.util.Date();
+        new Log(key);//生成commit的同时，补充logs文件
     }
-
     //获得已有最新commit key
     public String getParent() throws IOException {
         this.parent = Files.readString(Paths.get(pathOfHEAD)); //从HEAD中获得上一次commit的key
@@ -110,22 +94,13 @@ public class Commit extends KeyValueObject{
     }
 
 
-    public String getTargetValue(String target, String path){
+    public static String getTargetValue(String target, String path){
         String targetValue = "";
         try {
-            FileReader fileReader = new FileReader(path);
-            BufferedReader in = new BufferedReader(fileReader);
-            do{
-                String line = in.readLine();
-                //int index = line.indexOf(target);
-                if(line.matches(target + ".*")) {
-                    //targetValue = line.substring(index + target.length() + 1).trim();
-                    targetValue = line.substring(target.length() + 1).trim();
-                }
-            }while(targetValue == "");
-//            String contentOfFile = Files.readString(Paths.get(path));
-//            int index = contentOfFile.indexOf(target);
-//            targetValue = contentOfFile.substring(index + target.length() + 1, index + target.length() + 1 + 40);
+            String contentOfFile = Files.readString(Paths.get(path));
+            int index = contentOfFile.indexOf(target);
+            System.out.println(index);
+            targetValue = contentOfFile.substring(index + target.length() + 1, index + target.length() + 1 + 40);
         }
         catch(FileNotFoundException ex){
             System.out.println("No such file -- " + (new File(path)).getName());
@@ -144,87 +119,86 @@ public class Commit extends KeyValueObject{
         return "commit " + key + "\n"
                 + "parent " + parent + "\n"
                 + "author " + author + "<" + email + ">" + "\n"
-                + "date " + dateCreated + "\n"
-                + "description " + descOfCommit;
+                + "date " + dateCreated + "\n";
 /*   commit 80abf20f197563ea14ca29f2d6b0945c483b2682
      parent 80abf20f197563ea14ca29f2d6b0945c483b2682
      author username <email>
      date dateCreated
-     description someSampleDescription
 */
     }
+    //回滚函数：给定希望回滚到的commit，
+    //1.找到commit中tree的内容，
+    //2.在工作路径中还原commit中的文件，这里是将commit中所有文件替换掉原始的文件夹，还没有考虑只更换差异文件的优化方式。
+    //3.更新HEAD文件和logs文件
+    public static void reset(String commitkey,String originpath)throws Exception {
+    	String keyoftree=getTargetValue("tree","Objects"+"/"+commitkey);
+    	writeback(keyoftree,originpath);
+    	new HEAD(commitkey);
+    	Log.deletecommit(commitkey);
+    }
+    	
+    public static void writeback(String key,String originpath)throws Exception{
+    	File file = new File("Objects",key);
+		InputStreamReader inputReader = new InputStreamReader(new FileInputStream(file));
+		BufferedReader bf = new BufferedReader(inputReader);
+		// 按行读取字符串
+		String str;
+		while ((str = bf.readLine()) != null) {
+			if(str.startsWith("100644 blob ")) {//如果读入的hash是文件，则直接以覆盖的形式写入文件
+				String keyofblob=str.substring(12, 52);
+				String filename=str.substring(53,str.length());
+				String contentOfFile = Files.readString(Paths.get("Objects"+"/"+keyofblob));
+				File fl = new File(originpath+"/"+filename);
+	            FileWriter os = new FileWriter(fl);
+	            os.write(contentOfFile);
+	            os.flush();
+	            os.close();
+			}
+			if(str.startsWith("040000 tree ")) {
+				//如果读入的hash是文件夹，则
+				//首先删除工作目录的该文件夹，
+				//再创建新的文件夹
+				//递归文件夹中内容，直到所有文件都写入
+				String keyofnexttree=str.substring(12,52);
+				String dicname=str.substring(53,str.length());
+				File dic = new File(originpath+"/"+dicname);
+				if (dic.exists()) {
+					deletefiles(originpath+"/"+dicname);
+				}
+				Path path = Paths.get(originpath+"/"+dicname);
+				Path pathCreate = Files.createDirectory(path);
+				key=keyofnexttree;//更新递归的下一层key
+				originpath=originpath+"/"+dicname;//更新路径
+				writeback(key,originpath);
+				
+			}
+	
+		}
+		inputReader.close();
+		bf.close();
+    }
+    //递归删除文件夹
+	public static boolean deletefiles(String path) {
+		File file= new File(path);
+		if (!file.exists()) {
+			return false;
+			}
+		if (file.isFile()) {
+			return file.delete();
+			} else {
+				for (File f : file.listFiles()) {
+					deletefiles(path+File.separator + f.getName());
+					}
+				}
+		return file.delete();
+		}
 }
-
-
-
-
-/*
-
-    public Commit(String keyOfRoot) throws Exception { //keyOfTree是根目录的key值
-        this.value = "";
-
-        if(!(new File(HEAD).exists())){ //如果是第一次commit，则value仅是根目录的key
-            this.value += "tree " + keyOfRoot;
-        }
-        else{ //如果不是第一次commit，则value是根目录的key和上一次commit的key
-            //比较根目录的key有没有发生改变，如果改变了，就进行更新
-            this.value += "tree " + keyOfRoot;
-            this.value += "parent " + getParent();
-        }
-        this.key = generateKey(value); //生成commit的key
-        generateFile(key, value); //生成commit对应的文件
-        generateFile("HEAD", key); //将最新的commit的key放入HEAD文件
-
-        //提交commit的账户和email
-        this.author = getTargetValue("author",path);
-        this.email = getTargetValue("email", path);
-        //生成commit的时间
-        this.dateCreated = (new Date()).toString();
-    }
-
-    //获取提交commit的用户的用户名
-    public void getAuthor() throws Exception {
-        try {
-            Stream<String> lines = Files.lines(Paths.get(path));
-            lines.forEach(ele -> {
-                if(ele.matches("username.*")){
-                    this.author = (ele.substring(9)).trim();
-                }
-                else{
-                    System.out.println("No username");
-                }
-            });
-        }
-        catch(FileNotFoundException ex){
-            //如果没有找到config文件，则说明进行配置
-            new Config();
-            ex.getStackTrace();
-        }
-        catch(IOException ex){
-            ex.getStackTrace();
-        }
-    }
-
-    //获取提交commit的用户的email
-    public void getEmail(){
-        try {
-            Stream<String> lines = Files.lines(Paths.get(path));
-            lines.forEach(ele -> {
-                if(ele.matches("email.*")){
-                    this.email = (ele.substring(8)).trim();
-                }
-                else{
-                    System.out.println("No email");
-                }
-            });
-        }
-        catch(FileNotFoundException ex){
-            //如果没有找到config文件，则说明进行配置
-            new Config();
-            ex.getStackTrace();
-        }
-        catch(IOException ex){
-            ex.getStackTrace();
-        }
-    }
- */
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    
