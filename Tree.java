@@ -1,16 +1,20 @@
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
-//tree value:
-//    1.文件夹内的文件的名称+子文件夹的名称
-//    2.每个子文件的blob的key
-//    3.每个子文件夹tree的key
-
+/**
+ * @className Tree
+ * @description class Tree designed for directories
+ */
 public class Tree extends KeyValueObject {
+    public String publicPath = "git";
+    public String pathOfObjects = publicPath + File.separator + "Objects";
     private String key;
     private String value;
 
+    /**
+     * @description 给定文件夹路径，生成tree对象
+     * @param path
+     * @throws Exception
+     */
     public Tree(String path) throws Exception {
         File file = new File(path);
         File[] fs = file.listFiles();
@@ -25,14 +29,14 @@ public class Tree extends KeyValueObject {
             }
         }
         this.key = generateKey(value); //生成tree key
-        generateFile(key); //生成key-value文件
-        putValueIntoFile(key, value); //将value写入key-value文件
+        Util.generateFile(pathOfObjects, key); //生成key-value文件
+        Util.putValueIntoFile(pathOfObjects, key, value); //将value写入key-value文件
     }
 
-    //返回tree value
+    //返回tree key
     public String returnKey() { return key; }
 
-    //返回tree key
+    //返回tree value
     public String returnValue() { return value; }
 }
 
