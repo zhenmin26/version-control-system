@@ -5,30 +5,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.stream.Stream;
 
-//commit value:
-//    1.根目录的hash
-//    2.上一次commit的key
-
-/* Sample
-commit 56fe26ad9101d8a15e2d1cb46417fbe38a9a9041 (HEAD -> tast_01_v3, origin/tast_01_v3)
-Author: 陆甄敏 <zhenmin0226@163.com>
-Date:   Wed Dec 9 14:33:01 2020 +0800
-
-    Change Blob1 to Blob
-
-commit 80abf20f197563ea14ca29f2d6b0945c483b2682
-Author: 陆甄敏 <zhenmin0226@163.com>
-Date:   Wed Dec 9 14:25:14 2020 +0800
-
-    修改Blob1
+/**
+ * @className: Commit
+ * @description: class Commit designed for commits
  */
 public class Commit extends KeyValueObject{
-    //数据域
+    //文件路径
+    public String publicPath = "git";
+    public String pathOfObjects = publicPath + File.separator + "Objects";
+    public String pathOfHEAD = publicPath + File.separator + "HEAD"; //current HEAD
+    public String pathOfConfig = publicPath + File.separator + "Config"; //user info
+
+    //commit value
     private String key;
     private String value;
     private String parent; //已有最新commit的key
+
     //public static HEAD myHEAD; //HEAD
     //public HEAD myHEAD; //HEAD
     public String path = "objects";
@@ -66,32 +59,85 @@ public class Commit extends KeyValueObject{
             // 此时，myHEAD=null，会报错！
             new HEAD(key); //现在是在每次commit，都会产生HEAD对象
             //在HEAD构造方法里，如果不是第一次commit，会更新HEAD文件的value
-        }
+    private String author;
+    private String email;
+    private String dateCreated;
+    private String descOfCommit; //description of commit
 
+
+    /**
+     * @description 给定根目录的key和上一次commit的key，生成这一次commit的commit对象
+     * @param keyOfRoot
+     * @param descOfCommit
+     * @throws Exception
+     */
+    public Commit(String keyOfRoot, String descOfCommit) throws Exception {
+        this.dateCreated = (new Date()).toString();
+        this.descOfCommit = descOfCommit;
+
+        //判断文件Config是否存在，存在则读取author，email；否则调用Config创建Config文件
+        if(!(new File(pathOfConfig).exists())) {
+            new Config();
+        }
+        this.author = Util.getTargetValue("username", pathOfConfig); //在Config文件中，author对应的是username
+        this.email = Util.getTargetValue("email", pathOfConfig);
+
+        //initial commit value
+        this.value = "";
+        //set commit value
+        this.value += "tree " + keyOfRoot + "\n";
+        if(((new File(pathOfHEAD)).exists())){ //通过是否存在HEAD文件来判断，是否是第一次commit
+            //如果HEAD文件存在，说明是不是第一次commit，则commit value要加入parent commit key
+            this.value += "parent " + getParent() + "\n";
+        }
+        this.value += "author " + author + "\n";
+        this.value += "email " + email + "\n";
+        this.value += "date " + dateCreated + "\n";
+        this.value += "description " + descOfCommit + "\n";
+
+        //生成commit key
+        this.key = generateKey(value);
+        //生成HEAD()
+        new HEAD(key); //在HEAD构造方法例，如果是第一次commit，会产生HEAD文件，并存入value
         //生成commit的key-value文件
-        generateFile(key);
+        Util.generateFile(pathOfObjects, key);
         //向commit的key-value文件中写入value，value为tree key
+
         putValueIntoFile(key, value);
         dateCreated=new java.util.Date();
         new Log(key);//生成commit的同时，补充logs文件
     }
     //获得已有最新commit key
+
+        Util.putValueIntoFile(pathOfObjects, key, value);
+    }
+
+    /**
+     * @description 获得已有最新commit key
+     * @return
+     * @throws IOException
+     */
+
     public String getParent() throws IOException {
         this.parent = Files.readString(Paths.get(pathOfHEAD)); //从HEAD中获得上一次commit的key
         return parent;
     }
 
+    //返回parent commit key
     public String returnParent(){
         return parent;
     }
 
+    //返回commit key
     public String returnKey(){
         return key;
     }
 
+    //返回commit value
     public String returnValue(){
         return value;
     }
+
 
 
     public static String getTargetValue(String target, String path){
@@ -113,12 +159,15 @@ public class Commit extends KeyValueObject{
         return targetValue;
     }
 
+
+
     @Override
     public String toString(){
         //返回commit到下面的格式
         return "commit " + key + "\n"
                 + "parent " + parent + "\n"
                 + "author " + author + "<" + email + ">" + "\n"
+
                 + "date " + dateCreated + "\n";
 /*   commit 80abf20f197563ea14ca29f2d6b0945c483b2682
      parent 80abf20f197563ea14ca29f2d6b0945c483b2682
@@ -202,3 +251,9 @@ public class Commit extends KeyValueObject{
     	
     	
     
+
+                + "date " + dateCreated + "\n"
+                + "description " + descOfCommit;
+    }
+}
+
