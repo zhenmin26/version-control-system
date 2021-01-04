@@ -3,48 +3,39 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * @className HEAD
+ * @desription 指向commit的head类
+ */
 public class HEAD {
     private String keyOfCurCommit; //key of current commit
-    public String path = "Objects";
-    public String pathOfHEAD = "Objects" + File.separator + "HEAD";
+    public String publicPath = "git";
+    public String pathOfHEAD = "git" + File.separator + "HEAD";
 
-
+    /**
+     * @description 传入head指向的commit的key，生成head对象
+     * @param keyOfCommit
+     * @throws IOException
+     */
     public HEAD(String keyOfCommit) throws IOException {
-
-        //this.keyOfCurCommit = keyOfCommit;
-        //在Objects文件夹中生成HEAD文件，用来存放commit key
-        //(new File(path, "HEAD")).createNewFile();
-        //putValueIntoFile(keyOfCurCommit); //把最新的commit key放到HEAD文件里
-
-        //1st commit
+        //if 1st commit, HEAD does not exist
         if(!((new File(pathOfHEAD)).exists())){
-            (new File(path, "HEAD")).createNewFile();
-            this.keyOfCurCommit = keyOfCommit;
-            putValueIntoFile(keyOfCurCommit);
+            (new File(publicPath, "HEAD")).createNewFile();
         }
-        else { //not 1st commit
-            setValue(keyOfCommit);
-        }
+        setValue(keyOfCommit);
     }
 
+    /**
+     * @description 向head文件中传入commit key
+     * @param keyOfCommit
+     */
     public void setValue(String keyOfCommit){
         this.keyOfCurCommit = keyOfCommit;
-        putValueIntoFile(keyOfCommit);
+        Util.putValueIntoFile(publicPath, "HEAD", keyOfCommit);
     }
 
+    //返回当前commit key
     public String returnValue(){
         return keyOfCurCommit;
-    }
-
-    public void putValueIntoFile(String keyOfCommit){ //把commit key放入HEAD文件
-        try {
-            File file = new File(pathOfHEAD);
-            FileWriter os = new FileWriter(file);
-            os.write(keyOfCommit);
-            os.flush();
-            os.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
 }
