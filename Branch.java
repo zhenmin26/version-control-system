@@ -1,6 +1,4 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 
 /**
  * @calssname Branch
@@ -45,25 +43,124 @@ public class Branch {
     //切换分支,输入分支名
     public static void SwitchBranch(String BranchName) throws Exception {
         File file = new File(path+File.separator+BranchName);
-        FileInputStream in = new FileInputStream(file);
-        head.keyOfCurCommit = "";
-        int len = 0;
-        byte[] buf = new byte[1024];
-        while((len=in.read(buf))!=-1){
-            head.keyOfCurCommit += new String(buf,0,len);
-        }
+        head.keyOfCurCommit = readKey(file);
+        Util.putValueIntoFile(upPath,"HEAD",path+File.separator+BranchName);
         String key = head.keyOfCurCommit;
-        String FilePath = upPath+File.separator+"Objects"+File.separator+"key";
-        File temp = new File(FilePath);
-        String tree = Util.getTargetValue("tree ",FilePath);
-        String blob = Util.getTargetValue("blob ",FilePath);
-        
+        //删除文件夹下的除git文件夹的所有内容
+        deleteFiles(upPath);
+//        String FilePath = upPath+File.separator+"Objects"+File.separator+"key";
+//        File temp = new File(FilePath);
+//        String tree = Util.getTargetValue("tree ",FilePath);
+//        String blob = Util.getTargetValue("blob ",FilePath);
+        //回滚到分支的最新commit对应的tree的结构
+        Commit.reset(key);
     }
 
-    //合并分支
-    public static boolean merge(String name1, String name2){
+    //读取CommitKey
+    public static String readKey(File file){
+        String result = "";
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(file));//构造一个BufferedReader类来读取文件
+            String s = null;
+            while((s = br.readLine())!=null){
+                result += s;
+            }
+            br.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
 
+    //递归删除文件夹下除了git文件夹的所有文件
+    public static boolean deleteFiles(String path) {
+        File file= new File(path);
+        if(file.getPath() != upPath) {
+            if (!file.exists()) {
+                return false;
+            }
+            if (file.isFile()) {
+                return file.delete();
+            } else {
+                for (File f : file.listFiles()) {
+                    deleteFiles(path + File.separator + f.getName());
+                }
+            }
+            return file.delete();
+        }
         return true;
     }
 
+    //合并分支
+    public static boolean merge(String name1, String name2) throws Exception {
+        if(Conflict(name1,name2)) return false;
+        else {
+            File f1 = new File(path + File.separator + name1);
+            File f2 = new File(path + File.separator + name2);
+            String CommitKey1 = readKey(f1);
+            String CommitKey2 = readKey(f2);
+
+            String tree1 = Util.getTargetValue("tree", path + File.separator + "Objects" + File.separator + CommitKey1);
+            String tree2 = Util.getTargetValue("tree", path + File.separator + "Objects" + File.separator + CommitKey2);
+
+            deleteFiles(upPath);
+            Commit.reset(CommitKey1);
+            Commit.reset(CommitKey2);
+            return true;
+        }
+    }
+
+    static boolean Conflict(String name1,String name2) throws Exception {
+        File f1 = new File(path+File.separator+name1);
+        File f2 = new File(path+File.separator+name2);
+        String CommitKey1 = readKey(f1);
+        String CommitKey2 = readKey(f2);
+
+        String tree1 = Util.getTargetValue("tree",path+File.separator+"Objects"+File.separator+CommitKey1);
+        String tree2 = Util.getTargetValue("tree",path+File.separator+"Objects"+File.separator+CommitKey2);
+
+        deleteFiles(upPath);
+        Commit.reset(CommitKey1);
+        Commit.reset(CommitKey2);
+        return true;
+    }
+
+    //比较两个文件是否相同
+    private void compareFile(String firFile, String secFile) {
+        try {
+            BufferedInputStream fir = new BufferedInputStream(new FileInputStream(firFile));
+            BufferedInputStream sec = new BufferedInputStream(new FileInputStream(secFile));
+            //比较文件的长度是否一样
+            if (fir.available() == sec.available()) {
+                while (fir.read() != -1 && sec.read() != -1) {
+                    if (fir.read() != sec.read()) {
+                        System.out.println("Files not same!");
+                        break;
+                    }
+                }
+                System.out.println("two files are same!");
+            } else {
+                System.out.println("two files are different!");
+            }
+            fir.close();
+            sec.close();
+            return;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //读取文件名
+    private static String inputFileName() {
+        BufferedReader buffRead = new BufferedReader(new InputStreamReader(System.in));
+        String fileName = null;
+        try {
+            fileName = buffRead.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileName;
+    }
 }

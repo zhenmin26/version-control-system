@@ -112,8 +112,9 @@ public class Util {
         String path = KeyValueObject.root+File.separator+"git"+File.separator+"Objects"+TreeKey;
         File file = new File(path);
         getTargetValue("tree ",path);
-
     }
+
+
 
 
     public static void Init() throws IOException {
@@ -130,6 +131,6 @@ public class Util {
         Head.createNewFile();
         Branch.mkdir();
         Config.createNewFile();
-        putValueIntoFile(root+File.separator,"HEAD",root+File.separator+"Branch"+File.separator+"main");
+        putValueIntoFile(root+File.separator+"git","HEAD",Branch.getPath()+"main");
     }
 }

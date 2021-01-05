@@ -10,8 +10,8 @@ import java.io.IOException;
 public class HEAD {
     public String branch = "main";
     public String keyOfCurCommit; //key of current commit
-    public static final String publicPath = "git";
-    public static final String pathOfHEAD = "git" + File.separator + "HEAD";
+    public static final String publicPath = KeyValueObject.root+"git";
+    public static final String pathOfHEAD = KeyValueObject.root+"git" + File.separator + "HEAD";
 
     /**
      * @description 传入head指向的commit的key，生成head对象
