@@ -9,6 +9,7 @@ import java.nio.file.Paths;
  * @description: blob, tree, commit的父类
  */
 abstract class KeyValueObject{
+    public static String root;
     /**
      * @methodName generateKey
      * @description given a value, return its hash code
@@ -42,5 +43,9 @@ abstract class KeyValueObject{
             ex.getStackTrace();
         }
         return value;
+    }
+
+    public static void setRoot(String root) {
+        KeyValueObject.root = root;
     }
 }

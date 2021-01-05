@@ -9,7 +9,7 @@ import java.util.Date;
  */
 public class Commit extends KeyValueObject{
     //文件路径
-    public String publicPath = "git";
+    public String publicPath = KeyValueObject.root+File.separator+"git";
     public String pathOfObjects = publicPath + File.separator + "Objects";
     public String pathOfHEAD = publicPath + File.separator + "HEAD"; //current HEAD
     public String pathOfConfig = publicPath + File.separator + "Config"; //user info
@@ -26,13 +26,14 @@ public class Commit extends KeyValueObject{
 
     /**
      * @description 给定根目录的key和上一次commit的key，生成这一次commit的commit对象
-     * @param keyOfRoot
      * @param descOfCommit
      * @throws Exception
      */
-    public Commit(String keyOfRoot, String descOfCommit) throws Exception {
+    public Commit(String descOfCommit) throws Exception {
         this.dateCreated = (new Date()).toString();
         this.descOfCommit = descOfCommit;
+
+        String RootKEY = (new Tree(KeyValueObject.root)).returnKey();
 
         //判断文件Config是否存在，存在则读取author，email；否则调用Config创建Config文件
         if(!(new File(pathOfConfig).exists())) {
@@ -44,7 +45,7 @@ public class Commit extends KeyValueObject{
         //initial commit value
         this.value = "";
         //set commit value
-        this.value += "tree " + keyOfRoot + "\n";
+        this.value += "tree " + RootKEY + "\n";
         if(((new File(pathOfHEAD)).exists())){ //通过是否存在HEAD文件来判断，是否是第一次commit
             //如果HEAD文件存在，说明是不是第一次commit，则commit value要加入parent commit key
             this.value += "parent " + getParent() + "\n";

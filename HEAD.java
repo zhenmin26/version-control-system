@@ -8,9 +8,10 @@ import java.io.IOException;
  * @desription 指向commit的head类
  */
 public class HEAD {
-    private String keyOfCurCommit; //key of current commit
-    public String publicPath = "git";
-    public String pathOfHEAD = "git" + File.separator + "HEAD";
+    public String branch = "main";
+    public String keyOfCurCommit; //key of current commit
+    public static final String publicPath = "git";
+    public static final String pathOfHEAD = "git" + File.separator + "HEAD";
 
     /**
      * @description 传入head指向的commit的key，生成head对象
@@ -30,6 +31,11 @@ public class HEAD {
      * @param keyOfCommit
      */
     public void setValue(String keyOfCommit){
+        this.keyOfCurCommit = keyOfCommit;
+        Util.putValueIntoFile(publicPath, "HEAD", keyOfCommit);
+    }
+
+    public void setValue(String keyOfCommit,boolean flag){
         this.keyOfCurCommit = keyOfCommit;
         Util.putValueIntoFile(publicPath, "HEAD", keyOfCommit);
     }

@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.Scanner;
 
 /**
  * @className Util
@@ -104,5 +105,31 @@ public class Util {
             ex.getStackTrace();
         }
         return targetValue;
+    }
+
+    //将Objects中的文件重新写回路径下,这里传入的必须是commit中包含的Tree的key
+    public static void WriteFile(String TreeKey){
+        String path = KeyValueObject.root+File.separator+"git"+File.separator+"Objects"+TreeKey;
+        File file = new File(path);
+        getTargetValue("tree ",path);
+
+    }
+
+
+    public static void Init() throws IOException {
+        Scanner in = new Scanner(System.in);
+        KeyValueObject.root = in.next();
+        String root = KeyValueObject.root;
+        File git = new File(root+File.separator+"git");
+        File Objects = new File(root+File.separator+"git"+File.separator+"Objects");
+        File Head = new File(root+File.separator+"git"+File.separator+"HEAD");
+        File Branch = new File(root+File.separator+"git"+File.separator+"Branch");
+        File Config = new File(root+File.separator+"git"+File.separator+"Config");
+        git.mkdir();
+        Objects.mkdir();
+        Head.createNewFile();
+        Branch.mkdir();
+        Config.createNewFile();
+        putValueIntoFile(root+File.separator,"HEAD",root+File.separator+"Branch"+File.separator+"main");
     }
 }
