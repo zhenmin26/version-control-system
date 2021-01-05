@@ -1,3 +1,4 @@
+import java.io.File;
 import java.util.Scanner;
 
 /**
@@ -7,7 +8,7 @@ import java.util.Scanner;
 public class Config {
     private String username;
     private String email;
-    public String publicPath = "git";
+    public String publicPath = KeyValueObject.root+ File.separator +"git";
 
     /**
      * @methodName Config
