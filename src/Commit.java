@@ -49,9 +49,10 @@ public class Commit extends KeyValueObject{
         this.value = "";
         //set commit value
         this.value += "tree " + RootKEY + "\n";
-        if(!new File(pathOfBranch+File.separator+"main").exists()){ //通过是否存在branch文件夹来判断，是否是第一次commit
-            Util.generateFile(pathOfBranch, "main");
-            Util.putValueIntoFile(pathOfBranch, "main", RootKEY);
+        //通过branch文件夹是否存在mian文件来判断，是否是第一次commit
+        if(!new File(pathOfBranch+File.separator+"main").exists()){
+            //第一次提交，只传入本次commit的key，在git/Branch/下创建文件名为分支名，value为commitkey的文件
+            new Branch(RootKEY);
         }
         else {
             //如果branch文件夹内存在文件，说明是不是第一次commit，则commit value要加入parent commit key
@@ -64,16 +65,16 @@ public class Commit extends KeyValueObject{
 
         //生成commit key
         this.key = generateKey(value);
+
         //生成HEAD()
         new HEAD(key); //在HEAD构造方法例，如果是第一次commit，会产生HEAD文件，并存入value
-        //Branch
-        new Branch(key);
         //log
         String logContent = "commit " + key + "\n"
                 + "author " + author + "<" + email + ">" + "\n"
                 + "date " + dateCreated + "\n"
                 + descOfCommit;
         new Log(logContent);
+
         //生成commit的key-value文件
         Util.generateFile(pathOfObjects, key);
         //向commit的key-value文件中写入value，value为tree key
@@ -87,7 +88,7 @@ public class Commit extends KeyValueObject{
      */
     public String getParent() throws IOException {
         String head=Files.readString(Paths.get(pathOfHead));
-        String branchname=head.substring(head.lastIndexOf(File.separator)+1);
+        String branchname=head.substring(head.lastIndexOf("/")+1);
         String parentcommit = publicPath + File.separator + "Branch"+ File.separator + branchname;
         this.parent = Files.readString(Paths.get(parentcommit)); //从HEAD中获得上一次commit的key
         return parent;

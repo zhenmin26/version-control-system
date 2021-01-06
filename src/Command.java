@@ -3,6 +3,7 @@ import java.util.Scanner;
 
 public class Command {
     public static String publicPath = "git";
+    ///Users/luzhenmin/Desktop/test
 
     /**
      * @description 从命令行传入命令语句，判断命令语句并执行相应的命令
@@ -30,6 +31,10 @@ public class Command {
 
                     case "commit":
                         doCommit(args);
+                        break;
+
+                    case "currentBranch":
+                        Branch.CurrentBranch();
                         break;
 
                     case "branch", "checkout":
@@ -76,6 +81,9 @@ public class Command {
             }
             if(args[1].equals("checkout")){ //git checkout branchName
                 Branch.SwitchBranch(args[2]);
+            }
+            if(args[1].equals("current")){
+                Branch.CurrentBranch();
             }
         }
         if(args.length == 4) { //git checkout -b branchName
