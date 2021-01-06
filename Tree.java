@@ -21,11 +21,13 @@ public class Tree extends KeyValueObject {
         value = "";
         //获得tree value
         for(int i=0; i<fs.length; i++){
-            if(fs[i].isFile()){
-                this.value += "100644 blob " + (new Blob(fs[i].getPath())).returnKey() + " " + fs[i].getName() + "\n";
-            }
-            if(fs[i].isDirectory()){
-                this.value += "040000 tree " + (new Tree(fs[i].getPath())).returnKey() + " " + fs[i].getName() + "\n";
+            if(!fs[i].getPath().equals(publicPath)) {
+                if (fs[i].isFile()) {
+                    this.value += "100644 blob " + (new Blob(fs[i].getPath())).returnKey() + " " + fs[i].getName() + "\n";
+                }
+                if (fs[i].isDirectory()) {
+                    this.value += "040000 tree " + (new Tree(fs[i].getPath())).returnKey() + " " + fs[i].getName() + "\n";
+                }
             }
         }
         this.key = generateKey(value); //生成tree key

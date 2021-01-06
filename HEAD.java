@@ -10,20 +10,24 @@ import java.io.IOException;
 public class HEAD {
     public String branch = "main";
     public String keyOfCurCommit; //key of current commit
-    public static final String publicPath = KeyValueObject.root+"git";
-    public static final String pathOfHEAD = KeyValueObject.root+"git" + File.separator + "HEAD";
+    public static final String publicPath = KeyValueObject.root + File.separator + "git";
+    public static final String pathOfHEAD = KeyValueObject.root+File.separator + "git" + File.separator + "HEAD";
 
     /**
      * @description 传入head指向的commit的key，生成head对象
      * @param keyOfCommit
      * @throws IOException
      */
-    public HEAD(String keyOfCommit) throws IOException {
-        //if 1st commit, HEAD does not exist
-        if(!((new File(pathOfHEAD)).exists())){
-            (new File(publicPath, "HEAD")).createNewFile();
-        }
-        setValue(keyOfCommit);
+    public HEAD(String keyOfCommit) throws Exception {
+        this.keyOfCurCommit = keyOfCommit;
+        String pathOfCurHead = Util.getValue(new File(pathOfHEAD));
+        Util.putValueIntoFile(new File(pathOfCurHead).getParent(), new File(pathOfCurHead).getName(), keyOfCommit);
+
+//        //if 1st commit, HEAD does not exist
+//        if(!((new File(pathOfHEAD)).exists())){
+//            (new File(publicPath, "HEAD")).createNewFile();
+//        }
+//        setValue(keyOfCommit);
     }
 
     /**

@@ -114,23 +114,58 @@ public class Util {
         getTargetValue("tree ",path);
     }
 
+    //递归删除文件夹
+    public static boolean deleteFiles(String path) {
+        File file= new File(path);
+        if(file.getPath().equals( KeyValueObject.root+File.separator+"git")) {
+            if (!file.exists()) {
+                return false;
+            }
+            if (file.isFile()) {
+                return file.delete();
+            } else {
+                for (File f : file.listFiles()) {
+                    deleteFiles(path + File.separator + f.getName());
+                }
+            }
+            return file.delete();
+        }
+        return true;
+    }
 
+    public static boolean deleteFiles(File file) {
+        if(!file.getPath().equals(KeyValueObject.root+File.separator+"git")) {
+            if (!file.exists()) {
+                return false;
+            }
+            if (file.isFile()) {
+                return file.delete();
+            }
+            else {
+                for (File f : file.listFiles()) {
+                    deleteFiles(f);
+                }
+            }
+            return file.delete();
+        }
+        return true;
+    }
 
 
     public static void Init() throws IOException {
-        Scanner in = new Scanner(System.in);
-        KeyValueObject.root = in.next();
+//        Scanner in = new Scanner(System.in);
+//        KeyValueObject.root = in.next();
         String root = KeyValueObject.root;
         File git = new File(root+File.separator+"git");
         File Objects = new File(root+File.separator+"git"+File.separator+"Objects");
         File Head = new File(root+File.separator+"git"+File.separator+"HEAD");
         File Branch = new File(root+File.separator+"git"+File.separator+"Branch");
-        File Config = new File(root+File.separator+"git"+File.separator+"Config");
+        //File Config = new File(root+File.separator+"git"+File.separator+"Config");
         git.mkdir();
         Objects.mkdir();
         Head.createNewFile();
         Branch.mkdir();
-        Config.createNewFile();
-        putValueIntoFile(root+File.separator+"git","HEAD",Branch.getPath()+"main");
+        //Config.createNewFile();
+        putValueIntoFile(root+File.separator+"git","HEAD",Branch.getPath()+File.separator+"main");
     }
 }

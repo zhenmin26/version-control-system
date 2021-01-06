@@ -9,7 +9,7 @@ import java.nio.file.Paths;
  * @description: blob, tree, commit的父类
  */
 abstract class KeyValueObject{
-    public static String root;
+    public static String root = "D:\\git1";
     /**
      * @methodName generateKey
      * @description given a value, return its hash code
