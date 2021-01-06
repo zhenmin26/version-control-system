@@ -1,0 +1,29 @@
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * @className HEAD
+ * @desription 指向commit的head类
+ */
+public class HEAD {
+    public String keyOfCurCommit; //key of current commit
+    public String publicPath = KeyValueObject.root+File.separator+"git";
+    public String pathOfHEAD = publicPath + File.separator + "HEAD";
+
+    /**
+     * @description 从HEAD文件中找到目前指向的分支，向当前分支对应的文件中写入commit key
+     * @param keyOfCommit
+     * @throws IOException
+     */
+    public HEAD(String keyOfCommit) throws Exception {
+        this.keyOfCurCommit = keyOfCommit;
+        //head指针所指向的分支的文件路径
+//        String pathOfCurHead = Util.getTargetValue("ref:", pathOfHEAD);
+//        Util.putValueIntoFile(publicPath, "HEAD", keyOfCommit);
+    }
+
+    //返回当前commit key
+    public String returnKey(){
+        return keyOfCurCommit;
+    }
+}

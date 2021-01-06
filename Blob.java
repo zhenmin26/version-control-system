@@ -5,7 +5,7 @@ import java.io.File;
  * @description class Blob designed for files
  */
 public class Blob extends KeyValueObject{
-    public String publicPath = "git";
+    public String publicPath = KeyValueObject.root+File.separator+"git";
     public String pathOfObjects = publicPath + File.separator + "Objects";
     private String key;
     private String value;
