@@ -20,7 +20,7 @@ public class Log {
             file.mkdir();//在第一次commit的时候新建logs文件夹
         }
         String head=Files.readString(Paths.get(publicPath+ File.separator+"HEAD"));
-        String branchname=head.substring(head.lastIndexOf(File.separator)+1);//找到当前所在branch的名字
+        String branchname=head.substring(head.lastIndexOf("/")+1);//找到当前所在branch的名字
         if(!((new File(path+File.separator+branchname)).exists())){
             Util.generateFile(path,branchname);
             Util.putValueIntoFile(path,branchname,commit);
@@ -37,7 +37,7 @@ public class Log {
      */
     public static void changelog(String targetcommit)throws Exception{
         String head=Files.readString(Paths.get(publicPath+ File.separator+"HEAD"));
-        String branchname=head.substring(head.lastIndexOf(File.separator)+1);
+        String branchname=head.substring(head.lastIndexOf("/")+1);
         FileReader fileReader = new FileReader(pathOfObjects+File.separator+targetcommit);//读入需要返回的commit文件中内容
         BufferedReader in = new BufferedReader(fileReader);
         String line = in.readLine();
@@ -61,7 +61,7 @@ public class Log {
     */
     public static void showlogs() throws Exception {
         String head=Files.readString(Paths.get(publicPath+ File.separator+"HEAD"));
-        String branchname=head.substring(head.lastIndexOf(File.separator)+1);//
+        String branchname=head.substring(head.lastIndexOf("/")+1);//
         String curcommit=Files.readString(Paths.get(publicPath+ File.separator+"Branch"+ File.separator+branchname));
         String content="";
         while(!curcommit.equals("")) {
@@ -120,7 +120,7 @@ public class Log {
         //首先比较工作区文件夹中的文件是否在需要还原的tree里，如果不在，则删除
         deletenonexisting(str,originpath);
         //逐行读取str中内容
-        String[] ss=str.split("\n");
+        String []ss=str.split("\n");
         for (int i=0;i<ss.length;i++){
             if(ss[i].startsWith("100644 blob ")) {//如果读入的hash是文件，则首先得到文件的哈希值，文件名和文件内容
                 String keyofblob=ss[i].substring(12, 52);
@@ -134,17 +134,13 @@ public class Log {
                         return;//内容相同，文件不做处理，直接返回
                     }
                     else {
-                        FileWriter os = new FileWriter(fl);
-                        os.write(contentOfFile);
-                        os.flush();
-                        os.close();//文件内容不同，覆盖写入文件
+                        Util.generateFile(originpath, filename);
+                        Util.putValueIntoFile(originpath, filename,contentOfFile);//文件内容不同，覆盖写入文件
                     }
                 }
                 else {
-                    FileWriter os = new FileWriter(fl);
-                    os.write(contentOfFile);
-                    os.flush();
-                    os.close();//文件不存在，直接写入文件
+                    Util.generateFile(originpath, filename);
+                    Util.putValueIntoFile(originpath, filename,contentOfFile);//文件不存在，直接写入文件
                 }
             }
 
@@ -170,6 +166,72 @@ public class Log {
         inputReader.close();
         bf.close();
     }
+//    public static void writeback(String key,String originpath)throws Exception{
+//        File file = new File(pathOfObjects,key);
+//        InputStreamReader inputReader = new InputStreamReader(new FileInputStream(file));
+//        BufferedReader bf = new BufferedReader(inputReader);
+//        // 将文件内容全部读取到str字符串中
+//        String str="";
+//        String strr="";
+//        strr=bf.readLine();
+//        while(strr!=null) {
+//            str+=strr+"\n";
+//            strr=bf.readLine();
+//        }
+//        //首先比较工作区文件夹中的文件是否在需要还原的tree里，如果不在，则删除
+//        deletenonexisting(str,originpath);
+//        //逐行读取str中内容
+//        String []ss=str.split("\n");
+//        for (int i=0;i<ss.length;i++){
+//            if(ss[i].startsWith("100644 blob ")) {//如果读入的hash是文件，则首先得到文件的哈希值，文件名和文件内容
+//                String keyofblob=ss[i].substring(12, 52);
+//                String filename=ss[i].substring(53,ss[i].length());
+//                String contentOfFile = Files.readString(Paths.get(pathOfObjects+ File.separator +keyofblob));
+//                File fl = new File(originpath+ File.separator +filename);
+//                if(fl.exists()) {//与工作区文件比较，如果名称相同则进一步比较内容
+//                    String origincontent=readKey(new File(originpath+ File.separator +filename));
+//                    //String origincontent=Files.readString(Paths.get(originpath+ File.separator +filename));
+//                    if(contentOfFile.equals(origincontent)) {
+//                        return;//内容相同，文件不做处理，直接返回
+//                    }
+//                    else {
+//                        FileWriter os = new FileWriter(fl);
+//                        os.write(contentOfFile);
+//                        os.flush();
+//                        os.close();//文件内容不同，覆盖写入文件
+//                    }
+//                }
+//                else {
+//                    FileWriter os = new FileWriter(fl);
+//                    os.write(contentOfFile);
+//                    os.flush();
+//                    os.close();//文件不存在，直接写入文件
+//                }
+//            }
+//
+//            if(ss[i].startsWith("040000 tree ")) {
+//                //如果读入的hash是文件夹，则
+//                //比较文件夹是否存在，不存在则创建文件夹，存在则直接进入，比较里面内容
+//                //递归文件夹中内容，直到所有文件都写入
+//                String keyofnexttree=ss[i].substring(12,52);
+//                String dicname=ss[i].substring(53,ss[i].length());
+//                File dic = new File(originpath+ File.separator +dicname);
+//                if (!dic.exists()) {
+//                    //deletefiles(originpath+ File.separator +dicname);
+//                    Path path = Paths.get(originpath+ File.separator +dicname);
+//                    Path pathCreate = Files.createDirectory(path);//文件夹不存在，创建文件夹
+//                }
+//                key=keyofnexttree;//更新递归的下一层key
+//                String originpath1=originpath+ File.separator +dicname;//更新路径
+//                writeback(key,originpath1);
+//
+//            }
+//
+//        }
+//        inputReader.close();
+//        bf.close();
+//    }
+//
     /*
      删除不需要的文件函数
      将文件夹中包含的file用listfiles函数展示出来，再检查每个文件的名称是否出现在tree的value中，如果

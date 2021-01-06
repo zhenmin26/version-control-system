@@ -153,8 +153,8 @@ public class Util {
 
 
     public static void Init() throws IOException {
-//        Scanner in = new Scanner(System.in);
-//        KeyValueObject.root = in.next();
+        Scanner in = new Scanner(System.in);
+        KeyValueObject.root = in.next();
         String root = KeyValueObject.root;
         File git = new File(root+File.separator+"git");
         File Objects = new File(root+File.separator+"git"+File.separator+"Objects");

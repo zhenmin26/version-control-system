@@ -1,6 +1,6 @@
 import java.io.File;
 
-public class main {
+public class testBranch {
     public static void main(String[] args) throws Exception {
         Util.Init();
         Commit c = new Commit("第1次提交");

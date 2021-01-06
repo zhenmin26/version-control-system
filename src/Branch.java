@@ -26,7 +26,7 @@ public class Branch {
     }
 
 
-    /**branch构造函数2:传入分支名称和当前最新的commitkey
+    /**branch构造函数2:传入分支名称和布尔标记flag
      * 以此次commit为分叉点构造另一个分支
      * @param name
      * @param flag
@@ -61,10 +61,13 @@ public class Branch {
     public static void SwitchBranch(String BranchName) throws Exception {
         File file = new File(path+File.separator+BranchName);
         String key = readKey(file);
-        //回滚到分支的最新commit对应的tree的结构
-        //得到tree的哈希值
+        /**根据传入的分支名在Branch文件夹下找到该分支对应的文件，读取最新的commit的hash值
+         * 再根据这个commit的hash值找到对应commit文件，读取文件中tree目录的hash值
+         * 找到对应tree文件，再根据tree文件下的blob以及tree文件的哈希值（KEY）以及文件和文件夹的名称
+         * 从Objects文件夹下根据blol,tree的KEY找到对应文件，再根据tree中存储的文件名，递归地写回*/
         String treeKey=Util.getTargetValue("tree",pathOfObjects+ File.separator +key);
-        Diffwriteback(treeKey,KeyValueObject.root);
+        /**写回函数,并Diff文件的增删改*/
+        writeback(treeKey,KeyValueObject.root);
         Util.putValueIntoFile(upPath,"HEAD",path+File.separator+BranchName);
     }
 
@@ -150,9 +153,7 @@ public class Branch {
                 key=keyofnexttree;//更新递归的下一层key
                 String originpath1=originpath+ File.separator +dicname;//更新路径
                 writeback(keyofnexttree,originpath1);
-
             }
-
         }
         inputReader.close();
         bf.close();
@@ -230,8 +231,8 @@ public class Branch {
             }
             if(ss[i].startsWith("040000 tree ")) {
                 /**如果读入的hash是文件夹，则
-                比较文件夹是否存在，不存在则创建文件夹，存在则直接进入，比较里面内容
-                递归文件夹中内容，直到所有文件都写入*/
+                 比较文件夹是否存在，不存在则创建文件夹，存在则直接进入，比较里面内容
+                 递归文件夹中内容，直到所有文件都写入*/
                 String keyofnexttree=ss[i].substring(12,52);
                 String dicname=ss[i].substring(53,ss[i].length());
                 File dic = new File(originpath+ File.separator +dicname);
