@@ -1,4 +1,4 @@
-package version_control;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,20 +23,7 @@ public class testreset {
     @Before	
 	public void addcommit()throws Exception{
 		creatd("/Users/mayining/Desktop/test","testtt");
-		Tree Tree1 = new Tree("/Users/mayining/Desktop/test");
-		String keyOfRoot = Tree1.returnKey();
-        Path targetFilePath;
-        String keyOfParent;
-        String keyOfParentRoot;
-        targetFilePath = Paths.get("Objects" + File.separator + "HEAD");
-        keyOfParent = Files.readString(targetFilePath);
-        keyOfParentRoot = getTargetValue("tree", "Objects" + File.separator + keyOfParent);
-        if(!(keyOfRoot.equals(keyOfParentRoot))) {
-        	Commit Commit1 = new Commit(keyOfRoot,"add testtt directory");
-            }
-        else{
-           System.out.println("Nothing has been changed.");
-            }
+        Commit Commit1 = new Commit("add testtt directory");
         Log.showlogs();
 	}
 	
@@ -44,40 +31,19 @@ public class testreset {
 	@Before
 	public void addsecondcommit()throws Exception{
 		creatf("/Users/mayining/Desktop/test/testt","test4","hello yining!");
-		Tree Tree1 = new Tree("/Users/mayining/Desktop/test");
-		String keyOfRoot = Tree1.returnKey();
-        Path targetFilePath;
-        String keyOfParent;
-        String keyOfParentRoot;
-        targetFilePath = Paths.get("Objects" + File.separator + "HEAD");
-        keyOfParent = Files.readString(targetFilePath);
-        keyOfParentRoot = getTargetValue("tree", "Objects" + File.separator + keyOfParent);
-        if(!(keyOfRoot.equals(keyOfParentRoot))) {
-        	Commit Commit1 = new Commit(keyOfRoot,"add test4 into testtt");
-        	
-            //System.out.println("keyOfRoot: " + keyOfRoot); //更新后的根目录的tree key
-            //System.out.println("keyOfCommit: " + Commit1.returnKey()); //commit2的commit key
-            //System.out.println("keyOfParent: " + Commit1.returnParent()); //commit2 的parent commit key --commit1的key
-            }
-        else{
-           System.out.println("Nothing has been changed.");
-            }               
+        Commit Commit1 = new Commit("add test4 into testtt");             
 	}
 	@Test
 	public void reset_test() throws Exception{
 		System.out.println("请输入需要回滚到的commit的key");
 		Scanner input=new Scanner(System.in);
 		String targetcommit=input.next();//读取输入返回的commit
-		Commit.reset(targetcommit,"/Users/mayining/Desktop/test");
+		Log.reset(targetcommit,"/Users/mayining/Desktop/test");
 	}
-	
-	
 	
 	@After
 	public void show2()throws Exception{
-		String head=Files.readString(Paths.get("objects"+ File.separator+"HEAD1"));
-    	String branchname=head.substring(head.lastIndexOf("/")+1);
-		System.out.println("删除后"+Files.readString(Paths.get("logs"+File.separator +branchname)));
+		Log.showlogs();		
 	}
 	
 	//根据关键字找寻上次提交中tree的哈希值函数
